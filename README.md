@@ -1,2 +1,2 @@
 # cup
-c++ runtime
+ c++ runtime
