@@ -4,7 +4,7 @@
 
 #pragma once
 
-//#include <new>
+#include <new>
 #include <utility>
 #include "Types.h"
 
@@ -24,7 +24,9 @@ class IMemoryPool {
 public:
     virtual void *Alloc(SourceLocation loc, int size) = 0;
 
-    virtual void Free(SourceLocation loc, void *mem) = 0;
+    virtual void Free(void *mem) = 0;
+
+    virtual bool Exists(void *mem) = 0;
 
     virtual void ReportLeak() = 0;
 
@@ -43,17 +45,17 @@ public:
         try {
             return new(memory) T(std::forward<Args>(args)...);  // 使用 placement new
         } catch (...) {
-            Free(loc, memory);  // 如果构造函数抛出异常，释放内存
+            Free(memory);  // 如果构造函数抛出异常，释放内存
             throw;
         }
     }
 
     // 自定义的 Delete 函数
     template<typename T>
-    void Delete(SourceLocation loc, T *ptr) {
+    void Delete(T *ptr) {
         if (ptr) {
             ptr->~T();  // 调用析构函数
-            Free(loc, ptr);  // 释放内存
+            Free(ptr);  // 释放内存
         }
     }
 
@@ -63,4 +65,5 @@ public:
 IMemoryPool *GetMemoryPool();
 
 
-#define NEW(Type, ...) GetMemoryPool()->New<Type>(SourceLocation(__FILE__, __LINE__ ), ##__VA_ARGS__)
+#define FNEW(Type, ...) GetMemoryPool()->New<Type>(SourceLocation(__FILE__, __LINE__ ), ##__VA_ARGS__)
+#define FALLOC(Size) GetMemoryPool()->Alloc(SourceLocation(__FILE__, __LINE__ ), Size)

@@ -24,14 +24,23 @@ public:
         return mem;
     }
 
-    void Free(SourceLocation loc, void *mem) override {
+    void Free(void *mem) override {
         std::lock_guard<std::mutex> lock(_contentByPtrMutex);
         auto it = _contentByPtr.find(mem);
         if (it == _contentByPtr.end())
+        {
+            spdlog::warn("SysMemoryPool::Free duplicate free {}", mem);
             return;
+        }
 
         _contentByPtr.erase(mem);
         std::free(mem);
+    }
+
+    bool Exists(  void *mem) override{
+        std::lock_guard<std::mutex> lock(_contentByPtrMutex);
+        auto it = _contentByPtr.find(mem);
+        return it != _contentByPtr.end();
     }
 
     void ReportLeak() override {
@@ -40,10 +49,10 @@ public:
         if (_contentByPtr.size() == 0)
             return;
 
-        spdlog::debug("Memory leak: {}", _contentByPtr.size());
+        spdlog::error("Memory leak: {}", _contentByPtr.size());
         for (auto kv: _contentByPtr) {
             auto &loc = kv.second.Location;
-            spdlog::debug(" ptr: {} type: {} parent: {} loc: {}:{}", kv.first, loc.TypeName, loc.Parent, loc.File,
+            spdlog::error(" ptr: {} type: {} parent: {} loc: {}:{}", kv.first, loc.TypeName, loc.Parent, loc.File,
                           loc.Line);
 
         }

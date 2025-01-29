@@ -11,16 +11,18 @@ class String : public IGCObject {
 public:
     String(const char *str = nullptr);
 
-    virtual ~String();
+    String(const String &other);
+
+    ~String() override;
 
     // 禁止拷贝赋值操作符
-    String &operator=(const String &) = delete;
-
-    bool operator==(const String &other) const;
+//    String &operator=(const String &) = delete;
+//
+//    bool operator==(const String &other) const;
 
     String ToUpper();
 
-    void Release() override;
+    const char *Str() { return _data; }
 
 private:
     void Make(int size);
