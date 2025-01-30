@@ -26,6 +26,31 @@ void TestShareObject() {
     String b = a;
 }
 
+struct MyStruct {
+    String a;
+};
+
+typedef std::shared_ptr<MyStruct> MyStructPtr;
+
+void TestStructMember() {
+//    MyStruct s;
+//    s.a = "hello";
+
+    auto s = MakePtr<MyStruct>();
+
+    s->a = "hello";
+}
+
+void TestVectorMember() {
+    auto s = MakePtr<MyStruct>();
+
+    s->a = "hello";
+
+    TVECTOR<MyStructPtr> sa;
+    sa.push_back(s);
+}
+
+
 void TestHeapObject() {
     auto str = FNEW(String, "hello");
 
@@ -52,8 +77,9 @@ int main() {
     auto app = GetApplication();
     app->Init();
 
-    TestStringAllocation();
-    TestShareObject();
+    //TestStringAllocation();
+    //TestShareObject();
+    TestVectorMember();
     //TestHeapObject();
 
     //TestGC();
